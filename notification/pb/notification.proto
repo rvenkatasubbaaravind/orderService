@@ -1,0 +1,21 @@
+syntax = "proto3";
+package notification;
+
+option go_package = "github.com/order_service/notification/pb";
+
+message PhoneNotification {
+    string PhoneNo=1;
+}
+
+message EmailNotification {
+    string Email=1;
+}
+
+message NotificationStatus {
+    string message=1;
+}
+
+service Notification {
+    rpc SendEmailNotification(EmailNotification) returns (NotificationStatus) {}
+    rpc SendPhoneNotification(PhoneNotification) returns (NotificationStatus) {}
+}
