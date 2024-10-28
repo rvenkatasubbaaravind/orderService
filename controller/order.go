@@ -37,8 +37,8 @@ func (oh *OrderHandler) PostOrder(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	oh.NotificationClient.SendEmailNotification(ctx, &pb.EmailNotification{Email: order.Email})
-	oh.NotificationClient.SendPhoneNotification(ctx, &pb.PhoneNotification{PhoneNo: order.PhoneNo})
+	oh.NotificationClient.SendEmailNotification(ctx, &pb.EmailNotification{Email: order.Email, Text: "Order is succesful"})
+	oh.NotificationClient.SendPhoneNotification(ctx, &pb.PhoneNotification{PhoneNo: order.PhoneNo, Text: "Order is succesful"})
 	w.Write([]byte(fmt.Sprintf("orderid %d is success", order.Id)))
 }
 
@@ -62,8 +62,8 @@ func (oh *OrderHandler) CancelOrder(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	oh.NotificationClient.SendEmailNotification(ctx, &pb.EmailNotification{Email: order.Email})
-	oh.NotificationClient.SendPhoneNotification(ctx, &pb.PhoneNotification{PhoneNo: order.PhoneNo})
+	oh.NotificationClient.SendEmailNotification(ctx, &pb.EmailNotification{Email: order.Email, Text: "Order cancellation is succesful"})
+	oh.NotificationClient.SendPhoneNotification(ctx, &pb.PhoneNotification{PhoneNo: order.PhoneNo, Text: "Order cancellation is succesful"})
 	w.Write([]byte("deleted order"))
 }
 
@@ -100,7 +100,7 @@ func (oh *OrderHandler) PatchOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if reqBody.Id != 0 || reqBody.PaymentStatus != "" || reqBody.ProductID != "" {
+	if reqBody.Id != 0 || reqBody.PaymentStatus != "" || reqBody.ProductID != "" || reqBody.Name != "" {
 		http.Error(w, "Uneditable fields", http.StatusBadRequest)
 		return
 	}

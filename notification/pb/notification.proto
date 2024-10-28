@@ -5,10 +5,12 @@ option go_package = "github.com/order_service/notification/pb";
 
 message PhoneNotification {
     string PhoneNo=1;
+    string text=2;
 }
 
 message EmailNotification {
     string Email=1;
+    string text=2;
 }
 
 message NotificationStatus {
