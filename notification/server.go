@@ -1,4 +1,4 @@
-package main
+package notification
 
 import (
 	"context"
@@ -25,10 +25,11 @@ func (NotifcationServer) SendPhoneNotification(context.Context, *pb.PhoneNotific
 	}, nil
 }
 
-func main() {
-	lis, err := net.Listen("tcp", ":8080")
+func init() {
+	lis, err := net.Listen("tcp", "0.0.0.0:8080")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
+		return
 	}
 	s := grpc.NewServer()
 	pb.RegisterNotificationServer(s, &NotifcationServer{})

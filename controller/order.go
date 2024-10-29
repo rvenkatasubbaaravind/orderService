@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -34,11 +35,26 @@ func (oh *OrderHandler) PostOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	oh.NotificationClient.SendEmailNotification(ctx, &pb.EmailNotification{Email: order.Email, Text: "Order is succesful"})
-	oh.NotificationClient.SendPhoneNotification(ctx, &pb.PhoneNotification{PhoneNo: order.PhoneNo, Text: "Order is succesful"})
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		status, err := oh.NotificationClient.SendEmailNotification(ctx, &pb.EmailNotification{Email: order.Email, Text: "Order cancellation is succesful"})
+		if err != nil {
+			log.Println("Failed in delivering email", err.Error())
+			return
+		}
+		log.Println("Status of the email", status.Message)
+	}()
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		status, err := oh.NotificationClient.SendPhoneNotification(ctx, &pb.PhoneNotification{PhoneNo: order.PhoneNo, Text: "Order cancellation is succesful"})
+		if err != nil {
+			log.Println("Failed in delivering SMS", err.Error())
+			return
+		}
+		log.Println("Status of the sms", status.Message)
+	}()
 	w.Write([]byte(fmt.Sprintf("orderid %d is success", order.Id)))
 }
 
@@ -59,11 +75,26 @@ func (oh *OrderHandler) CancelOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	oh.NotificationClient.SendEmailNotification(ctx, &pb.EmailNotification{Email: order.Email, Text: "Order cancellation is succesful"})
-	oh.NotificationClient.SendPhoneNotification(ctx, &pb.PhoneNotification{PhoneNo: order.PhoneNo, Text: "Order cancellation is succesful"})
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		status, err := oh.NotificationClient.SendEmailNotification(ctx, &pb.EmailNotification{Email: order.Email, Text: "Order cancellation is succesful"})
+		if err != nil {
+			log.Println("Failed in delivering email", err.Error())
+			return
+		}
+		log.Println("Status of the email", status.Message)
+	}()
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		status, err := oh.NotificationClient.SendPhoneNotification(ctx, &pb.PhoneNotification{PhoneNo: order.PhoneNo, Text: "Order cancellation is succesful"})
+		if err != nil {
+			log.Println("Failed in delivering SMS", err.Error())
+			return
+		}
+		log.Println("Status of the sms", status.Message)
+	}()
 	w.Write([]byte("deleted order"))
 }
 
