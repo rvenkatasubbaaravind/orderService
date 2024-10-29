@@ -25,8 +25,8 @@ func (NotifcationServer) SendPhoneNotification(context.Context, *pb.PhoneNotific
 	}, nil
 }
 
-func init() {
-	lis, err := net.Listen("tcp", "0.0.0.0:8080")
+func StartServer() {
+	lis, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 		return

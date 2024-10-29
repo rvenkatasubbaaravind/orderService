@@ -19,12 +19,11 @@ func GetDatabase() (db *gorm.DB, err error) {
 }
 
 func GetGRPCClient() (c pb.NotificationClient, err error) {
-	conn, err := grpc.NewClient("0.0.0.0:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("app:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 		return
 	}
-	log.Println("connecting to grpc is sucesssful", err)
 	c = pb.NewNotificationClient(conn)
 	return c, err
 }

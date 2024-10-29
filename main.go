@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/order_service/controller"
+	"github.com/order_service/notification"
 	"github.com/order_service/utils"
 )
 
@@ -26,6 +27,8 @@ func main() {
 		Database:           db,
 		NotificationClient: client,
 	}
+
+	go notification.StartServer()
 
 	router := mux.NewRouter()
 	router.HandleFunc("/orders", oh.PostOrder).Methods(http.MethodPost)
