@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -22,12 +23,21 @@ type OrderHandler struct {
 }
 
 func (oh *OrderHandler) PostOrder(w http.ResponseWriter, r *http.Request) {
+	var body models.PostOrder
 	var order models.Order
-	err := json.NewDecoder(r.Body).Decode(&order)
+	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	order.Address = body.Address
+	order.Email = body.Email
+	order.PaymentStatus = "Prepaid"
+	order.Name = body.Name
+	order.ProductID = body.ProductID
+	order.Status = "NEW"
+	order.PhoneNo = body.PhoneNo
 
 	res := oh.Database.Create(&order)
 	if res.Error != nil {
@@ -114,7 +124,7 @@ func (oh *OrderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func (oh *OrderHandler) PatchOrder(w http.ResponseWriter, r *http.Request) {
-	var reqBody models.Order
+	var reqBody models.PatchOrder
 	var existingRecord models.Order
 
 	pathVariables := mux.Vars(r)
@@ -125,19 +135,10 @@ func (oh *OrderHandler) PatchOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewDecoder(r.Body).Decode(&reqBody)
+	err = json.NewDecoder(r.Body).Decode(&existingRecord)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
-	}
-
-	if reqBody.Id != 0 || reqBody.PaymentStatus != "" || reqBody.ProductID != "" || reqBody.Name != "" {
-		http.Error(w, "Uneditable fields", http.StatusBadRequest)
-		return
-	}
-
-	if reqBody.Address != "" {
-		existingRecord.Address = reqBody.Address
 	}
 
 	if reqBody.Email != "" {
@@ -178,6 +179,11 @@ func (oh *OrderHandler) NotifyUsers(w http.ResponseWriter, r *http.Request) {
 	status, ok := pathVariables["status"]
 	if !ok {
 		http.Error(w, "Missing required path param", http.StatusBadRequest)
+		return
+	}
+
+	if !slices.Contains([]string{"OOD", "SHIP", "FDB"}, status) {
+		http.Error(w, "Not a valid state to act", http.StatusBadRequest)
 		return
 	}
 
