@@ -172,3 +172,65 @@ func checkIfOrderExists(db *gorm.DB, pathVariables map[string]string) (order mod
 	}
 	return
 }
+
+func (oh *OrderHandler) NotifyUsers(w http.ResponseWriter, r *http.Request) {
+	pathVariables := mux.Vars(r)
+	status, ok := pathVariables["status"]
+	if !ok {
+		http.Error(w, "Missing required path param", http.StatusBadRequest)
+		return
+	}
+
+	var orders []models.Order
+
+	err := oh.Database.Where("status", status).Find(&orders).Error
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	getText := func(status string) string {
+		switch status {
+		case "OOD":
+			return "Out For delivery"
+		case "SHIP":
+			return "Ready to ship"
+		case "FDB":
+			return "Rate your FeedBack"
+		}
+		return ""
+	}
+
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+
+		stream, err := oh.NotificationClient.SendStatus(ctx)
+		if err != nil {
+			log.Println("Failed to get the stream for client", err)
+			return
+		}
+		for _, order := range orders {
+			err = stream.Send(&pb.EmailNotification{
+				Email: order.Email,
+				Text:  getText(status),
+			})
+			if err != nil {
+				log.Printf("Fail to send a notification to %s ", order.Name)
+				continue
+			}
+			log.Println("sent notification", order.Name)
+		}
+
+		message, err := stream.CloseAndRecv()
+		if err != nil {
+			log.Println("Fail to close and receive the stream")
+			return
+		}
+		log.Println("response of the stream", message)
+
+	}()
+
+	w.WriteHeader(http.StatusAccepted)
+	w.Write([]byte("Accepted"))
+}

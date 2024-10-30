@@ -2,6 +2,7 @@ package notification
 
 import (
 	"context"
+	"io"
 	"log"
 	"net"
 
@@ -23,6 +24,20 @@ func (NotifcationServer) SendPhoneNotification(context.Context, *pb.PhoneNotific
 	return &pb.NotificationStatus{
 		Message: "Success",
 	}, nil
+}
+
+func (n NotifcationServer) SendStatus(stream pb.Notification_SendStatusServer) error {
+	for {
+		email, err := stream.Recv()
+		if err == io.EOF {
+			return stream.SendAndClose(&pb.NotificationStatus{Message: "Done processing the messages"})
+		}
+		if err != nil {
+			log.Println("Error while receiving from stream", err)
+			return err
+		}
+		n.SendEmailNotification(context.Background(), email)
+	}
 }
 
 func StartServer() {

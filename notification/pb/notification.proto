@@ -20,4 +20,5 @@ message NotificationStatus {
 service Notification {
     rpc SendEmailNotification(EmailNotification) returns (NotificationStatus) {}
     rpc SendPhoneNotification(PhoneNotification) returns (NotificationStatus) {}
+    rpc SendStatus(stream EmailNotification) returns (NotificationStatus) {}
 }

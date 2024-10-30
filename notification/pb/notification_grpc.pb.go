@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.28.2
-// source: notification/pb/notification.proto
+// source: pb/notification.proto
 
 package pb
 
@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Notification_SendEmailNotification_FullMethodName = "/notification.Notification/SendEmailNotification"
 	Notification_SendPhoneNotification_FullMethodName = "/notification.Notification/SendPhoneNotification"
+	Notification_SendStatus_FullMethodName            = "/notification.Notification/SendStatus"
 )
 
 // NotificationClient is the client API for Notification service.
@@ -29,6 +30,7 @@ const (
 type NotificationClient interface {
 	SendEmailNotification(ctx context.Context, in *EmailNotification, opts ...grpc.CallOption) (*NotificationStatus, error)
 	SendPhoneNotification(ctx context.Context, in *PhoneNotification, opts ...grpc.CallOption) (*NotificationStatus, error)
+	SendStatus(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[EmailNotification, NotificationStatus], error)
 }
 
 type notificationClient struct {
@@ -59,12 +61,26 @@ func (c *notificationClient) SendPhoneNotification(ctx context.Context, in *Phon
 	return out, nil
 }
 
+func (c *notificationClient) SendStatus(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[EmailNotification, NotificationStatus], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Notification_ServiceDesc.Streams[0], Notification_SendStatus_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[EmailNotification, NotificationStatus]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Notification_SendStatusClient = grpc.ClientStreamingClient[EmailNotification, NotificationStatus]
+
 // NotificationServer is the server API for Notification service.
 // All implementations must embed UnimplementedNotificationServer
 // for forward compatibility.
 type NotificationServer interface {
 	SendEmailNotification(context.Context, *EmailNotification) (*NotificationStatus, error)
 	SendPhoneNotification(context.Context, *PhoneNotification) (*NotificationStatus, error)
+	SendStatus(grpc.ClientStreamingServer[EmailNotification, NotificationStatus]) error
 	mustEmbedUnimplementedNotificationServer()
 }
 
@@ -80,6 +96,9 @@ func (UnimplementedNotificationServer) SendEmailNotification(context.Context, *E
 }
 func (UnimplementedNotificationServer) SendPhoneNotification(context.Context, *PhoneNotification) (*NotificationStatus, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendPhoneNotification not implemented")
+}
+func (UnimplementedNotificationServer) SendStatus(grpc.ClientStreamingServer[EmailNotification, NotificationStatus]) error {
+	return status.Errorf(codes.Unimplemented, "method SendStatus not implemented")
 }
 func (UnimplementedNotificationServer) mustEmbedUnimplementedNotificationServer() {}
 func (UnimplementedNotificationServer) testEmbeddedByValue()                      {}
@@ -138,6 +157,13 @@ func _Notification_SendPhoneNotification_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Notification_SendStatus_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(NotificationServer).SendStatus(&grpc.GenericServerStream[EmailNotification, NotificationStatus]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Notification_SendStatusServer = grpc.ClientStreamingServer[EmailNotification, NotificationStatus]
+
 // Notification_ServiceDesc is the grpc.ServiceDesc for Notification service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -154,6 +180,12 @@ var Notification_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Notification_SendPhoneNotification_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "notification/pb/notification.proto",
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "SendStatus",
+			Handler:       _Notification_SendStatus_Handler,
+			ClientStreams: true,
+		},
+	},
+	Metadata: "pb/notification.proto",
 }
