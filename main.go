@@ -36,6 +36,8 @@ func main() {
 	router.HandleFunc("/orders/{id}", oh.CancelOrder).Methods(http.MethodDelete)
 	router.HandleFunc("/orders/{id}", oh.PatchOrder).Methods(http.MethodPut)
 
+	router.HandleFunc("/orders", oh.GetOrders).Methods(http.MethodGet)
+
 	router.HandleFunc("/notify/{status}", oh.NotifyUsers).Methods(http.MethodGet)
 
 	http.ListenAndServe(":5000", router)

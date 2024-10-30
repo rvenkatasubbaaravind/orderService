@@ -123,6 +123,17 @@ func (oh *OrderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(order)
 }
 
+func (oh *OrderHandler) GetOrders(w http.ResponseWriter, r *http.Request) {
+	var orders []models.Order
+	err := oh.Database.Find(&orders).Error
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(orders)
+}
+
 func (oh *OrderHandler) PatchOrder(w http.ResponseWriter, r *http.Request) {
 	var reqBody models.PatchOrder
 	var existingRecord models.Order
@@ -225,7 +236,6 @@ func (oh *OrderHandler) NotifyUsers(w http.ResponseWriter, r *http.Request) {
 				log.Printf("Fail to send a notification to %s ", order.Name)
 				continue
 			}
-			log.Println("sent notification", order.Name)
 		}
 
 		message, err := stream.CloseAndRecv()

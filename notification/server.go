@@ -30,12 +30,13 @@ func (n NotifcationServer) SendStatus(stream pb.Notification_SendStatusServer) e
 	for {
 		email, err := stream.Recv()
 		if err == io.EOF {
-			return stream.SendAndClose(&pb.NotificationStatus{Message: "Done processing the messages"})
+			return stream.SendAndClose(&pb.NotificationStatus{Message: "Done processing the email notification"})
 		}
 		if err != nil {
 			log.Println("Error while receiving from stream", err)
 			return err
 		}
+		log.Printf("sent an email notification to %s", email.Email)
 		n.SendEmailNotification(context.Background(), email)
 	}
 }
