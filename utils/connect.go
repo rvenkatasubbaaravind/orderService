@@ -12,14 +12,14 @@ import (
 )
 
 func GetDatabase() (db *gorm.DB, err error) {
-	dsn := "host=db user=myusername password=mypassword dbname=postgres port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	dsn := "host=database user=myusername password=mypassword dbname=postgres port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	db.AutoMigrate(&models.Order{})
 	return
 }
 
 func GetGRPCClient() (c pb.NotificationClient, err error) {
-	conn, err := grpc.NewClient("app:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("localhost:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 		return

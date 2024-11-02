@@ -31,6 +31,9 @@ func main() {
 	go notification.StartServer()
 
 	router := mux.NewRouter()
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("alive"))
+	}).Methods(http.MethodGet)
 	router.HandleFunc("/orders", oh.PostOrder).Methods(http.MethodPost)
 	router.HandleFunc("/orders/{id}", oh.GetOrder).Methods(http.MethodGet)
 	router.HandleFunc("/orders/{id}", oh.CancelOrder).Methods(http.MethodDelete)
