@@ -1,4 +1,4 @@
 key,value
-"CL",2
-"Policy",30
-"RM",10
+"ClassA#PropertyA",2
+"ClassB#PropertyB",30
+"ClassC#PropertyB",10
